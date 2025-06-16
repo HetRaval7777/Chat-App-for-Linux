@@ -4,14 +4,32 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <pthread.h>
 #define PORT 8080
+#define MAX_STR_SIZE 1024
 
-int main() {
+static void *send_msg(void *arg){
+    int sock_fd = *(int *)arg;
+    char *send_msg = (char *)malloc(MAX_STR_SIZE);
+
+    while(1){
+        char *send_msg = (char *)malloc(MAX_STR_SIZE);
+        printf("You: ");
+        fgets(send_msg, 1024, stdin);
+        send(sock_fd, send_msg, strlen(send_msg), 0);
+        free(send_msg);
+    }
+
+    close(sock_fd);
+    return NULL;
+}
+
+int socket_init() {
     int server_fd, new_socket;
     struct sockaddr_in address;
+    pthread_t thread_id;
     int opt = 1;
     int addrlen = sizeof(address);
-    char* hello = "Hello from server";
     char buffer[1024] = {0};
     
     // Create socket file descriptor
@@ -52,16 +70,18 @@ int main() {
         perror("accept");
         exit(EXIT_FAILURE);
     }
-    
-    send(new_socket, hello, strlen(hello), 0);
 
-    // Read data from the client
-    read(new_socket, buffer, sizeof(buffer));
-    printf("Message from client: %s\n", buffer);
-    
-    // Close the socket
-    close(new_socket);
+    if(0 != pthread_create(&thread_id, NULL, send_msg, &new_socket))
+        perror("pthread_create for send msg");
+
+    pthread_join(thread_id, NULL);
+
     close(server_fd);
-    
+    return 0;
+}
+
+int main() {
+
+    socket_init();
     return 0;
 }

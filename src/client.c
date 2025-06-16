@@ -5,12 +5,11 @@
 #include <unistd.h>
 #define PORT 8080
 
-int main(int argc, char const* argv[])
-{
+int client_init(){
+
     int status, valread, client_fd;
     struct sockaddr_in serv_addr;
     char* hello = "Hello from client";
-    char buffer[1024] = { 0 };
     if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
         return -1;
@@ -21,30 +20,28 @@ int main(int argc, char const* argv[])
 
     // Convert IPv4 and IPv6 addresses from text to binary
     // form
-    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)
-        <= 0) {
-        printf(
-            "\nInvalid address/ Address not supported \n");
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+        printf("\nInvalid address/ Address not supported \n");
         return -1;
     }
 
-    if ((status
-         = connect(client_fd, (struct sockaddr*)&serv_addr,
-                   sizeof(serv_addr)))
-        < 0) {
+    if ((status = connect(client_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr))) < 0) {
         printf("\nConnection Failed \n");
         return -1;
     }
-  
-    // subtract 1 for the null
-    // terminator at the end
-    send(client_fd, hello, strlen(hello), 0);
-    printf("Hello message sent\n");
-    valread = read(client_fd, buffer,
-                   1024 - 1); 
-    printf("%s\n", buffer);
 
-    // closing the connected socket
+    while(1) {
+        char buffer[1024] = { 0 };
+        valread = read(client_fd, buffer, 1024 - 1);
+        printf("Server: %s\n", buffer);
+    }
+
     close(client_fd);
+    return 0;
+}
+
+int main(int argc, char const* argv[])
+{
+    client_init();
     return 0;
 }
