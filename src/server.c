@@ -8,9 +8,8 @@
 #define PORT 8080
 #define MAX_STR_SIZE 1024
 
-static void *send_msg(void *arg){
+static void *send_msg(void *arg) {
     int sock_fd = *(int *)arg;
-    char *send_msg = (char *)malloc(MAX_STR_SIZE);
 
     while(1){
         char *send_msg = (char *)malloc(MAX_STR_SIZE);
@@ -24,10 +23,21 @@ static void *send_msg(void *arg){
     return NULL;
 }
 
+static void *recv_msg(void *arg) {
+    int sock_fd = *(int *)arg;
+
+    while(1) {
+        char buffer[1024] = { 0 };
+        read(sock_fd, buffer, 1024 - 1);
+        printf("client : %s\n", buffer);
+    }
+}
+
 int socket_init() {
     int server_fd, new_socket;
     struct sockaddr_in address;
-    pthread_t thread_id;
+    pthread_t send_msg_thread;
+    pthread_t recv_msg_thread;
     int opt = 1;
     int addrlen = sizeof(address);
     char buffer[1024] = {0};
@@ -71,12 +81,17 @@ int socket_init() {
         exit(EXIT_FAILURE);
     }
 
-    if(0 != pthread_create(&thread_id, NULL, send_msg, &new_socket))
+    if(0 != pthread_create(&send_msg_thread, NULL, send_msg, &new_socket))
         perror("pthread_create for send msg");
 
-    pthread_join(thread_id, NULL);
+    if(0 != pthread_create(&recv_msg_thread, NULL, recv_msg, &new_socket))
+        perror("pthread_create for send msg");
+
+    pthread_join(send_msg_thread, NULL);
+    pthread_join(recv_msg_thread, NULL);
 
     close(server_fd);
+    close(new_socket);
     return 0;
 }
 
