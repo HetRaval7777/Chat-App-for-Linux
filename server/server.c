@@ -31,6 +31,7 @@ static void *recv_msg(void *arg) {
         read(sock_fd, buffer, 1024 - 1);
         printf("client : %s\n", buffer);
     }
+    return NULL;
 }
 
 int socket_init() {
@@ -40,7 +41,6 @@ int socket_init() {
     pthread_t recv_msg_thread;
     int opt = 1;
     int addrlen = sizeof(address);
-    char buffer[1024] = {0};
     
     // Create socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {

@@ -31,15 +31,15 @@ static void *recv_msg(void *arg) {
         read(sock_fd, buffer, 1024 - 1);
         printf("client : %s\n", buffer);
     }
+    return NULL;
 }
 
 int client_init(){
 
-    int status, valread, client_fd;
+    int status, client_fd;
     struct sockaddr_in serv_addr;
     pthread_t send_msg_thread;
     pthread_t recv_msg_thread;
-    char* hello = "Hello from client";
     if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
         return -1;
